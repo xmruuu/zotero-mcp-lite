@@ -2,16 +2,16 @@
 Zotero MCP Lite server implementation.
 
 A lightweight Model Context Protocol (MCP) server for Zotero reference management.
-Provides 11 atomic tools and 4 research prompts for academic literature workflows.
+Provides 10 atomic tools and 4 research prompts for academic literature workflows.
 
 Architecture:
     - Read Operations: Via Zotero Local HTTP API (/api/)
     - Write Operations: Via Zotero Connector API (/connector/)
     - Annotation Queries: Direct SQLite access for performance
 
-Tools (11):
+Tools (10):
     Search & Navigation: search_items, get_recent, get_collections, 
-                        get_collection_items, get_tags, search_annotations
+                        get_collection_items, search_annotations
     Content Reading: get_item_metadata, get_item_children, get_item_fulltext
     Writing: create_note, create_review
 
@@ -243,48 +243,6 @@ def get_collection_items(
     except Exception as e:
         ctx.error(f"Error fetching collection items: {e}")
         return f"Error fetching collection items: {e}"
-
-
-@mcp.tool(
-    name="zotero_get_tags",
-    description=(
-        "List all tags/labels used to categorize your literature. "
-        "Shows topics, themes, or custom categories you've created. "
-        "Filter papers by tag using search_items with tag parameter."
-    )
-)
-def get_tags(
-    limit: Optional[int] = None,
-    *,
-    ctx: Context
-) -> str:
-    """Get all tags."""
-    try:
-        ctx.info("Fetching tags")
-        zot = get_zotero_client()
-        
-        tags = zot.tags(limit=limit)
-        
-        if not tags:
-            return "No tags found in your Zotero library."
-        
-        output = ["# Zotero Tags", ""]
-        
-        sorted_tags = sorted(tags)
-        current_letter = None
-        
-        for tag in sorted_tags:
-            first_letter = tag[0].upper() if tag else "#"
-            if first_letter != current_letter:
-                current_letter = first_letter
-                output.append(f"## {current_letter}")
-            output.append(f"- `{tag}`")
-        
-        return "\n".join(output)
-    
-    except Exception as e:
-        ctx.error(f"Error fetching tags: {e}")
-        return f"Error fetching tags: {e}"
 
 
 @mcp.tool(
