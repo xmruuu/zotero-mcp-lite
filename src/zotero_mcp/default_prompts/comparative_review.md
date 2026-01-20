@@ -6,7 +6,7 @@ Synthesize a comparative review for papers: {keys_list}
 
 For best results, use this **closed-loop workflow**:
 
-1. **First**: Run `literature_review` on each paper individually
+1. **First**: Run `/literature_review` on each paper individually
 2. **Save**: Let the reviews be stored as Zotero notes
 3. **Then**: Run this `comparative_review` - it will read your saved reviews
 

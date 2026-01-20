@@ -6,7 +6,6 @@ Metadata is auto-filled from Zotero, analysis content from LLM.
 """
 
 import re
-from typing import Any
 
 from zotero_mcp.utils import format_creators, extract_year
 

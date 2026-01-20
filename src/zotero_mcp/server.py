@@ -9,7 +9,8 @@ Architecture:
     - Write Operations: Via Zotero Connector API (/connector/)
     - Annotation Queries: Direct SQLite access for performance
 
-Tools (10):
+Tools (11):
+    Workflow: suggest_workflow
     Search & Navigation: search_items, get_recent, get_collections, 
                         get_collection_items, search_annotations
     Content Reading: get_item_metadata, get_item_children, get_item_fulltext
@@ -652,11 +653,10 @@ def get_item_fulltext(
 @mcp.tool(
     name="zotero_create_note",
     description=(
-        "Create a NEW literature review note, summary, or research memo in Zotero. "
-        "Use for: saving AI-generated literature reviews, paper summaries, or comparative analyses. "
+        "Create a free-form note in Zotero. "
+        "Use for: saving summaries, research memos, or any unstructured content. "
         "Attach to a paper with parent_key for organized reference management. "
-        "Supports HTML formatting (used by literature_review and comparative_review prompts). "
-        "NOTE: Creates new notes only - check existing notes first to avoid duplicates."
+        "For structured literature reviews, use zotero_create_review with /literature_review prompt instead."
     )
 )
 def create_note(
