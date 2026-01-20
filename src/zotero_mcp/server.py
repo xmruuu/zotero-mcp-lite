@@ -639,10 +639,9 @@ def create_note(
     name="zotero_create_review",
     description=(
         "Create a formatted literature review note with auto-filled metadata. "
-        "Accepts analysis as a JSON dict (e.g., {contribution: '...', gaps: '...'}). "
+        "Accepts analysis dict with fields as specified in the prompt instructions. "
         "Automatically retrieves paper metadata (title, authors, year, DOI, abstract) from Zotero. "
-        "Uses customizable HTML template from ~/.zotero-mcp/prompts/. "
-        "More efficient than create_note: LLM only provides analysis content, system handles formatting."
+        "Uses HTML template matching template_name from ~/.zotero-mcp/prompts/."
     )
 )
 def create_review(
