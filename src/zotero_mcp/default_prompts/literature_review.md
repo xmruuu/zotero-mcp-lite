@@ -10,42 +10,44 @@ Perform comprehensive academic analysis of paper {item_key}.
 
 ## Phase 2: Analysis
 
-Based on the available content, analyze:
+Based on the available content, provide analysis for **ALL** of the following fields:
 
-1. **Research Objective** - What is the main research question?
-2. **Research Background** - What context/prior work is mentioned?
-3. **Research Methods** - What methodology is used?
-4. **Contribution** - What are the novel contributions?
-5. **Gaps** - What limitations are identified?
-6. **Discussion** - What are the implications?
-7. **Quotes** - Key findings worth citing
-8. **To-Read** - Related papers mentioned
+1. **Research Objective** - What is the main research question or goal?
+2. **Research Background** - What context, motivation, or prior work is mentioned?
+3. **Research Methods** - What methodology, data, or approach is used?
+4. **Contribution** - What are the novel contributions or key findings?
+5. **Gaps** - What limitations or future work are identified?
+6. **Discussion** - What are the implications or broader impact?
+7. **Quotes** - Key sentences worth citing (with page numbers if available)
+8. **To-Read** - Related papers or references mentioned worth reading
 
 **Analysis Mode:**
 - If annotations exist: Prioritize the user's highlights and comments
 - If no annotations: Analyze from full text (or abstract if full text unavailable)
+
+**IMPORTANT:** Fill ALL 8 fields above. If information is not available, write "Not explicitly mentioned in the paper" instead of leaving blank.
 
 ## Phase 3: Note Creation
 
 After presenting the analysis, ask:
 "Would you like me to save this review as a note in Zotero?"
 
-If user agrees, call `zotero_create_review` with the analysis:
+If user agrees, call `zotero_create_review` with **ALL fields filled**:
 
 ```
 zotero_create_review(
     item_key="{item_key}",
     analysis={
         "objective": "The main research question is...",
-        "background": "This paper builds on...",
+        "background": "This paper builds on prior work in...",
         "methods": "The methodology involves...",
         "contribution": "The key contributions are...",
         "gaps": "Limitations include...",
         "discussion": "The implications are...",
-        "quotes": "Key findings: ...",
-        "to_read": "Related papers: ..."
+        "quotes": "Key findings: '...' (p.X)",
+        "to_read": "Related papers: Author (Year), ..."
     }
 )
 ```
 
-The system will automatically fill in metadata (title, authors, year, DOI, abstract) from Zotero.
+**Note:** The system automatically fills metadata (title, authors, year, DOI, abstract) from Zotero. You only need to provide the 8 analysis fields above.
