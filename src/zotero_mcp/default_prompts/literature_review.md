@@ -19,16 +19,16 @@ Execute these steps **in order**:
 
 This saves tokens and respects the user's reading insights.
 
-## Phase 2: Concise Analysis
+## Phase 2: Thorough Analysis
 
-Extract information for each field with **strict brevity**.
+Extract comprehensive information for each field.
 
 ### Output Rules
 
-1. **Max 50 words per field** - Be concise, no filler
+1. **Be thorough** - Include sufficient detail for future reference
 2. **No meta-commentary** - Skip "The authors mention...", "In this paper...", etc.
 3. **Direct statements only** - Jump straight to the point
-4. **Quote sparingly** - Only when exact wording matters
+4. **Quote when valuable** - Capture key phrases that define the work
 5. **Cite section** - Use `[Intro]`, `[Methods]`, `[Results]`, etc.
 
 ### Anti-Hallucination Rules
@@ -54,15 +54,15 @@ Extract information for each field with **strict brevity**.
 ### Example Output Format
 
 ```
-objective: [Intro] Develop few-shot object detection for construction safety compliance.
+objective: [Intro] Develop a few-shot object detection framework for construction safety compliance monitoring that can identify safety violations with minimal training data, addressing the challenge of limited labeled datasets in construction site imagery.
 
-methods: [Methods] Custom dataset of 5,000 images; YOLO-based detector with transfer learning; N=12 object classes.
+methods: [Methods] Created custom dataset of 5,000 construction site images across 12 object classes (helmets, vests, harnesses, etc.). Implemented YOLO-based detector with transfer learning from COCO pre-trained weights. Used 5-shot learning protocol with episodic training. Evaluation on held-out test set of 1,000 images from 3 different construction sites.
 
-contribution: [Results] 88.2% precision, 79.5% recall for object detection; 94.8% for attribute recognition.
+contribution: [Results] Achieved 88.2% precision and 79.5% recall for object detection tasks; 94.8% accuracy for safety attribute recognition. Outperformed baseline models by 15% on few-shot scenarios. Demonstrated generalization across different construction site types and lighting conditions.
 
-gaps: [Limitations] Only fall-related hazards; no real-time deployment tested.
+gaps: [Limitations] Focus limited to fall-related hazards only; no real-time deployment tested on live construction sites; dataset biased toward daytime conditions; does not address occlusion scenarios common in crowded work areas.
 
-to_read: Wang et al. (2023) - provides larger safety image dataset; Chen (2022) - addresses real-time detection gap.
+to_read: Wang et al. (2023) - provides larger-scale safety image dataset (50K images) for comparison; Chen (2022) - addresses real-time detection gap with edge deployment; Kim (2024) - covers multi-hazard detection beyond fall protection.
 ```
 
 ## Phase 3: Note Creation
@@ -76,16 +76,16 @@ If user agrees, call `zotero_create_review`:
 zotero_create_review(
     item_key="{item_key}",
     analysis={
-        "objective": "[Intro] Concise goal statement.",
-        "background": "[Related Work] Key refs: A (Year), B (Year).",
-        "methods": "[Methods] Methodology, N=X, data from Y.",
-        "contribution": "[Results] Key finding with X% metric.",
-        "gaps": "[Limitations] What wasn't addressed.",
-        "discussion": "[Conclusion] Suggested future work.",
-        "quotes": "'Key quote 1' [Section]; 'Key quote 2' [Section]",
-        "to_read": "Author (Year) - reason to read; Author (Year) - reason to read"
+        "objective": "[Intro] Full research goal with context and motivation.",
+        "background": "[Related Work] Key prior work with specific contributions: Author A (Year) established X; Author B (Year) advanced Y but left gap Z.",
+        "methods": "[Methods] Complete methodology description including data sources, sample sizes, algorithms/frameworks used, and validation approach.",
+        "contribution": "[Results] Detailed findings with metrics, comparisons to baselines, and significance of improvements.",
+        "gaps": "[Limitations] What the authors acknowledge they didn't address, methodological constraints, and scope boundaries.",
+        "discussion": "[Conclusion] Future research directions suggested by authors and implications for the field.",
+        "quotes": "Multiple key quotes that capture the essence of the work, each with [Section] reference.",
+        "to_read": "Relevant references with specific reasons: Author (Year) - why this paper fills a gap or provides complementary insight."
     }
 )
 ```
 
-**Reminder:** Metadata (title, authors, year, DOI, abstract) is auto-filled. Focus on concise, verifiable insights.
+**Reminder:** Metadata (title, authors, year, DOI, abstract) is auto-filled. Focus on thorough, verifiable insights.
