@@ -8,93 +8,84 @@ Execute these steps **in order**:
 
 1. Call `zotero_get_item_metadata("{item_key}")` for bibliographic details.
 2. Call `zotero_get_item_children("{item_key}")` to retrieve annotations and notes.
-3. **Conditional fulltext retrieval:**
-   - If annotations are **rich and cover most analysis fields** → Use annotations as primary source
-   - If annotations are **sparse or missing key fields** → Call `zotero_get_item_fulltext("{item_key}")` to supplement
 
-**Prioritize user annotations** - they represent what the user found important. Only fetch fulltext when annotations are insufficient.
+### Conditional Full Text Retrieval
+
+**Evaluate the annotations:**
+- If annotations **cover all 8 analysis fields** → Use annotations as primary source
+- If annotations are **sparse or missing key fields** → Call `zotero_get_item_fulltext("{item_key}")` to supplement
+
+**Priority:** User annotations > Full text > Abstract only
+
+This saves tokens and respects the user's reading insights.
 
 ## Phase 2: Concise Analysis
 
-Extract information for each field below. **Be concise and direct.**
-
-### Anti-Hallucination Rules
-
-1. **ONLY extract what is explicitly stated** - no fabrication
-2. **Quote directly** when possible using "..."
-3. **Cite section** - e.g., "[Intro]", "[Methods]", "[Results]"
-4. **If not found**: "Not discussed"
-5. **If inferred**: Mark with "[Inference]"
-
-### Required Fields
-
-| Field | Extract | Source | Format |
-|-------|---------|--------|--------|
-| **objective** | Research question/goal | Introduction | Max 50 words |
-| **background** | Key prior work cited | Intro/Related Work | Max 50 words |
-| **methods** | Methodology + **sample size** + **data source** | Methods | Max 60 words |
-| **contribution** | Key findings with **exact metrics** | Results | Max 60 words |
-| **gaps** | Limitations stated by authors | Discussion | Max 50 words |
-| **discussion** | Future work directions | Conclusion | Max 50 words |
-| **quotes** | 2-3 key sentences worth citing | Any | Direct quotes only |
-| **to_read** | Gap-filling references | Text | Why worth reading |
+Extract information for each field with **strict brevity**.
 
 ### Output Rules
 
-1. **Max 50-60 words per field** (except quotes)
-2. **No filler phrases** - avoid "The authors mention...", "This paper discusses..."
-3. **Lead with the insight**, not the source
-4. **Include numbers** when available (N=, %, accuracy, etc.)
+1. **Max 50 words per field** - Be concise, no filler
+2. **No meta-commentary** - Skip "The authors mention...", "In this paper...", etc.
+3. **Direct statements only** - Jump straight to the point
+4. **Quote sparingly** - Only when exact wording matters
+5. **Cite section** - Use `[Intro]`, `[Methods]`, `[Results]`, etc.
 
-### Format Examples
+### Anti-Hallucination Rules
 
-**Good:**
+1. **Extract only explicit content** - No invention
+2. **If not found:** Write "Not discussed"
+3. **If inferred:** Mark with `[Inferred]`
+4. **Never fabricate** numbers, names, or citations
+
+### Required Analysis Fields
+
+| Field | What to Extract | Notes |
+|-------|-----------------|-------|
+| **objective** | Research question/goal | From Introduction |
+| **background** | Key prior work cited | 2-3 foundational references max |
+| **methods** | Methodology + sample size + data source | Be specific: "N=500 survey responses from X" |
+| **contribution** | Key findings with metrics | Include exact numbers when available |
+| **gaps** | Limitations stated by authors | What they acknowledge they didn't do |
+| **discussion** | Future work directions | What authors suggest as next steps |
+| **quotes** | 2-3 key sentences | With `[Section]` reference |
+| **to_read** | Gap-filling references | Why each is worth reading (e.g., "provides X data this paper lacks") |
+
+### Example Output Format
+
 ```
-methods: [Methods] Survey of N=500 construction workers; image dataset of 2,847 site photos; YOLOv5 for detection.
+objective: [Intro] Develop few-shot object detection for construction safety compliance.
+
+methods: [Methods] Custom dataset of 5,000 images; YOLO-based detector with transfer learning; N=12 object classes.
+
+contribution: [Results] 88.2% precision, 79.5% recall for object detection; 94.8% for attribute recognition.
+
+gaps: [Limitations] Only fall-related hazards; no real-time deployment tested.
+
+to_read: Wang et al. (2023) - provides larger safety image dataset; Chen (2022) - addresses real-time detection gap.
 ```
-
-**Bad (too verbose):**
-```
-methods: [Methods] The authors describe their methodology in detail. They conducted a survey... (continues for 150 words)
-```
-
-### to_read Field: Gap-Filling References
-
-Don't just list papers. Explain **why** each is worth reading:
-
-```
-to_read: 
-- Wang (2023): Provides safety inspection dataset this paper lacks
-- Chen (2022): Alternative approach using transformers, compare accuracy
-```
-
-### Handling Missing Information
-
-- Not found: `"Not discussed"`
-- Implied only: `"[Inference] ..."`
-- **Never fabricate** to fill gaps
 
 ## Phase 3: Note Creation
 
-After presenting analysis, ask:
+After presenting the analysis, ask:
 "Would you like me to save this review as a note in Zotero?"
 
-If yes, call `zotero_create_review`:
+If user agrees, call `zotero_create_review`:
 
 ```
 zotero_create_review(
     item_key="{item_key}",
     analysis={
-        "objective": "[Intro] Develop automated compliance checking for construction sites.",
-        "background": "[Related Work] Builds on YOLO-based detection (Redmon 2016) and safety ontologies (Zhang 2021).",
-        "methods": "[Methods] N=500 site images; few-shot learning with 5-shot setup; YOLOv5 backbone.",
-        "contribution": "[Results] 88.2% precision, 79.5% recall for object detection; 94.8% for attributes.",
-        "gaps": "[Limitations] Limited to fall hazards; no real-time deployment tested.",
-        "discussion": "[Conclusion] Extend to other hazard types; integrate with BIM systems.",
-        "quotes": "'Few-shot learning reduces annotation burden by 80%' [Results]",
-        "to_read": "Li (2024): Multi-agent approach for comparison; OSHA dataset for validation"
+        "objective": "[Intro] Concise goal statement.",
+        "background": "[Related Work] Key refs: A (Year), B (Year).",
+        "methods": "[Methods] Methodology, N=X, data from Y.",
+        "contribution": "[Results] Key finding with X% metric.",
+        "gaps": "[Limitations] What wasn't addressed.",
+        "discussion": "[Conclusion] Suggested future work.",
+        "quotes": "'Key quote 1' [Section]; 'Key quote 2' [Section]",
+        "to_read": "Author (Year) - reason to read; Author (Year) - reason to read"
     }
 )
 ```
 
-**Reminder:** Metadata (title, authors, DOI, abstract) auto-filled from Zotero. Focus on concise, verifiable insights.
+**Reminder:** Metadata (title, authors, year, DOI, abstract) is auto-filled. Focus on concise, verifiable insights.
