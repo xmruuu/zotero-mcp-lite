@@ -1,7 +1,7 @@
 """
 Zotero MCP Lite - A lightweight Model Context Protocol server for Zotero.
 
-Provides 12 atomic tools for AI assistants to interact with Zotero libraries.
+Provides 10 atomic tools for AI assistants to interact with Zotero libraries.
 """
 
 from ._version import __version__

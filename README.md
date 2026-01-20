@@ -126,6 +126,10 @@ That's it! You're ready to use Zotero with AI assistants.
 
 ### 10 Atomic MCP Tools
 
+**Workflow Discovery**
+
+- `zotero_suggest_workflow` - Get recommended prompt for a research task
+
 **Search and Navigation**
 
 - `zotero_search_items` - Keyword search with tag filtering

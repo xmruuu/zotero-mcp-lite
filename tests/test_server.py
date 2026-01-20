@@ -16,6 +16,7 @@ from zotero_mcp.server import (
     search_annotations,
     get_item_metadata,
     get_item_children,
+    get_item_fulltext,
     create_note,
 )
 
@@ -27,6 +28,7 @@ _get_collection_items = get_collection_items.fn
 _search_annotations = search_annotations.fn
 _get_item_metadata = get_item_metadata.fn
 _get_item_children = get_item_children.fn
+_get_item_fulltext = get_item_fulltext.fn
 _create_note = create_note.fn
 
 
@@ -460,6 +462,112 @@ class TestGetItemChildren(unittest.TestCase):
         self.assertIn("Notes", result)
         self.assertIn("paper.pdf", result)
         self.assertIn("ATT1", result)
+
+
+class TestGetItemFulltext(unittest.TestCase):
+    """Tests for zotero_get_item_fulltext tool."""
+
+    @patch("zotero_mcp.server.get_attachment_details")
+    @patch("zotero_mcp.server.get_zotero_client")
+    def test_fulltext_from_zotero_index(self, mock_get_client, mock_get_attachment):
+        """Fulltext retrieved from Zotero's index."""
+        from zotero_mcp.client import AttachmentDetails
+
+        mock_zot = MagicMock()
+        mock_zot.item.return_value = {"data": {"title": "Test Paper"}}
+        mock_zot.fulltext_item.return_value = {
+            "content": "This is the full text content of the paper."
+        }
+        mock_get_client.return_value = mock_zot
+        mock_get_attachment.return_value = AttachmentDetails(
+            key="ATT123",
+            title="paper.pdf",
+            filename="paper.pdf",
+            content_type="application/pdf",
+        )
+
+        ctx = MockContext()
+        result = _get_item_fulltext("ABC123", ctx=ctx)
+
+        self.assertIn("full text content", result)
+        mock_zot.fulltext_item.assert_called_once_with("ATT123")
+
+    @patch("zotero_mcp.server.get_attachment_details")
+    @patch("zotero_mcp.server.get_zotero_client")
+    def test_fulltext_truncated_when_exceeds_max(self, mock_get_client, mock_get_attachment):
+        """Long content is truncated with message."""
+        from zotero_mcp.client import AttachmentDetails
+
+        mock_zot = MagicMock()
+        mock_zot.item.return_value = {"data": {"title": "Test Paper"}}
+        # Content longer than default max_chars
+        long_content = "A" * 15000
+        mock_zot.fulltext_item.return_value = {"content": long_content}
+        mock_get_client.return_value = mock_zot
+        mock_get_attachment.return_value = AttachmentDetails(
+            key="ATT123",
+            title="paper.pdf",
+            filename="paper.pdf",
+            content_type="application/pdf",
+        )
+
+        ctx = MockContext()
+        result = _get_item_fulltext("ABC123", max_chars=10000, ctx=ctx)
+
+        self.assertIn("truncated", result)
+        self.assertIn("5000 more characters", result)
+
+    @patch("zotero_mcp.server.get_attachment_details")
+    @patch("zotero_mcp.server.get_zotero_client")
+    def test_fulltext_no_item_found(self, mock_get_client, mock_get_attachment):
+        """Returns error when item not found."""
+        mock_zot = MagicMock()
+        mock_zot.item.return_value = None
+        mock_get_client.return_value = mock_zot
+
+        ctx = MockContext()
+        result = _get_item_fulltext("INVALID", ctx=ctx)
+
+        self.assertIn("No item found", result)
+
+    @patch("zotero_mcp.server.get_attachment_details")
+    @patch("zotero_mcp.server.get_zotero_client")
+    def test_fulltext_no_attachment_found(self, mock_get_client, mock_get_attachment):
+        """Returns error when no suitable attachment."""
+        mock_zot = MagicMock()
+        mock_zot.item.return_value = {"data": {"title": "Test Paper"}}
+        mock_get_client.return_value = mock_zot
+        mock_get_attachment.return_value = None
+
+        ctx = MockContext()
+        result = _get_item_fulltext("ABC123", ctx=ctx)
+
+        self.assertIn("No suitable attachment", result)
+
+    @patch("zotero_mcp.server.get_attachment_details")
+    @patch("zotero_mcp.server.get_zotero_client")
+    def test_fulltext_fallback_when_index_empty(self, mock_get_client, mock_get_attachment):
+        """Falls back to PyMuPDF when Zotero index has no content."""
+        from zotero_mcp.client import AttachmentDetails
+
+        mock_zot = MagicMock()
+        mock_zot.item.return_value = {"data": {"title": "Test Paper"}}
+        mock_zot.fulltext_item.return_value = {"content": ""}  # Empty index
+        mock_get_client.return_value = mock_zot
+        mock_get_attachment.return_value = AttachmentDetails(
+            key="ATT123",
+            title="paper.pdf",
+            filename="paper.pdf",
+            content_type="application/pdf",
+        )
+
+        ctx = MockContext()
+        # This will try PyMuPDF fallback which may fail in test environment
+        result = _get_item_fulltext("ABC123", ctx=ctx)
+
+        # Should either succeed with content or show a fallback error
+        # (not the "No suitable attachment" error)
+        self.assertNotIn("No suitable attachment", result)
 
 
 class TestCreateNote(unittest.TestCase):

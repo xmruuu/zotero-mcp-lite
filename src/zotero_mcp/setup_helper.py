@@ -27,9 +27,9 @@ def ensure_default_prompts() -> bool:
     
     default_files = [
         "literature_review.md",
-        "literature_review_template.html",
         "comparative_review.md",
-        "comparative_review_template.html",
+        "knowledge_discovery.md",
+        "bibliography_export.md",
     ]
     
     created = False
