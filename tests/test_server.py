@@ -13,12 +13,11 @@ from zotero_mcp.server import (
     get_recent,
     get_collections,
     get_collection_items,
-    get_tags,
     search_annotations,
     get_item_metadata,
     get_item_children,
     create_note,
-    create_item,
+    create_review,
 )
 
 # Access the underlying functions from FunctionTool wrappers
@@ -26,12 +25,11 @@ _search_items = search_items.fn
 _get_recent = get_recent.fn
 _get_collections = get_collections.fn
 _get_collection_items = get_collection_items.fn
-_get_tags = get_tags.fn
 _search_annotations = search_annotations.fn
 _get_item_metadata = get_item_metadata.fn
 _get_item_children = get_item_children.fn
 _create_note = create_note.fn
-_create_item = create_item.fn
+_create_review = create_review.fn
 
 
 class MockContext:
@@ -314,36 +312,6 @@ class TestGetCollectionItems(unittest.TestCase):
         )
 
 
-class TestGetTags(unittest.TestCase):
-    """Tests for zotero_get_tags tool."""
-
-    @patch("zotero_mcp.server.get_zotero_client")
-    def test_get_tags_returns_sorted(self, mock_get_client):
-        """Tags are returned sorted alphabetically."""
-        mock_zot = MagicMock()
-        mock_zot.tags.return_value = ["AI", "Biology", "Chemistry", "Data Science"]
-        mock_get_client.return_value = mock_zot
-
-        ctx = MockContext()
-        result = _get_tags(ctx=ctx)
-
-        self.assertIn("`AI`", result)
-        self.assertIn("`Biology`", result)
-        # Check alphabetical sections
-        self.assertIn("## A", result)
-        self.assertIn("## B", result)
-
-    @patch("zotero_mcp.server.get_zotero_client")
-    def test_get_tags_empty(self, mock_get_client):
-        """Empty tags returns appropriate message."""
-        mock_zot = MagicMock()
-        mock_zot.tags.return_value = []
-        mock_get_client.return_value = mock_zot
-
-        ctx = MockContext()
-        result = _get_tags(ctx=ctx)
-
-        self.assertIn("No tags found", result)
 
 
 class TestSearchAnnotations(unittest.TestCase):
@@ -538,24 +506,82 @@ class TestCreateNote(unittest.TestCase):
         self.assertIn("Cannot connect", result)
 
 
-class TestCreateItem(unittest.TestCase):
-    """Tests for zotero_create_item tool."""
+class TestCreateReview(unittest.TestCase):
+    """Tests for zotero_create_review tool."""
 
     @patch("zotero_mcp.server.create_item_local")
-    def test_create_item_success(self, mock_create):
-        """Item is created successfully."""
+    @patch("zotero_mcp.server.get_zotero_client")
+    def test_create_review_success(self, mock_get_client, mock_create):
+        """Review note is created successfully with metadata."""
         mock_create.return_value = {"success": True}
+        mock_zot = MagicMock()
+        mock_zot.item.return_value = {
+            "key": "ABC123",
+            "data": {
+                "title": "Test Paper",
+                "itemType": "journalArticle",
+                "date": "2024",
+                "creators": [
+                    {"creatorType": "author", "firstName": "John", "lastName": "Doe"}
+                ],
+                "publicationTitle": "Test Journal",
+                "DOI": "10.1234/test",
+                "abstractNote": "This is a test abstract.",
+                "tags": [{"tag": "AI"}],
+            }
+        }
+        mock_get_client.return_value = mock_zot
 
         ctx = MockContext()
-        result = _create_item(
-            item_type="journalArticle",
-            title="New Paper",
-            creators=[{"creatorType": "author", "firstName": "John", "lastName": "Doe"}],
+        result = _create_review(
+            item_key="ABC123",
+            analysis={
+                "contribution": "Key contributions include...",
+                "gaps": "Limitations are...",
+            },
             ctx=ctx,
         )
 
-        self.assertIn("Item created", result)
-        self.assertIn("New Paper", result)
+        self.assertIn("Test Paper", result)
+        mock_create.assert_called_once()
+
+    @patch("zotero_mcp.server.get_zotero_client")
+    def test_create_review_item_not_found(self, mock_get_client):
+        """Returns error when item not found."""
+        mock_zot = MagicMock()
+        mock_zot.item.return_value = None
+        mock_get_client.return_value = mock_zot
+
+        ctx = MockContext()
+        result = _create_review(
+            item_key="NOTFOUND",
+            analysis={"contribution": "..."},
+            ctx=ctx,
+        )
+
+        self.assertIn("Error", result)
+        self.assertIn("no item found", result.lower())
+
+    @patch("zotero_mcp.server.create_item_local")
+    @patch("zotero_mcp.server.get_zotero_client")
+    def test_create_review_connection_error(self, mock_get_client, mock_create):
+        """Connection error is handled gracefully."""
+        mock_create.side_effect = ConnectionError("Cannot connect")
+        mock_zot = MagicMock()
+        mock_zot.item.return_value = {
+            "key": "ABC123",
+            "data": {"title": "Test Paper"},
+        }
+        mock_get_client.return_value = mock_zot
+
+        ctx = MockContext()
+        result = _create_review(
+            item_key="ABC123",
+            analysis={"contribution": "..."},
+            ctx=ctx,
+        )
+
+        self.assertIn("Cannot connect", result)
 
 
 if __name__ == "__main__":
