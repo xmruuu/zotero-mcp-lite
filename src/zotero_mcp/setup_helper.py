@@ -12,10 +12,7 @@ import sys
 from pathlib import Path
 from importlib import resources
 
-
-def get_prompts_dir() -> Path:
-    """Get the user prompts directory (~/.zotero-mcp/prompts/)."""
-    return Path.home() / ".zotero-mcp" / "prompts"
+from zotero_mcp.config import get_prompts_dir
 
 
 def ensure_default_prompts() -> bool:

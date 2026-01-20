@@ -5,9 +5,7 @@ Handles loading of user-customizable prompt files and HTML templates
 from ~/.zotero-mcp/prompts/ directory.
 """
 
-import json
 from pathlib import Path
-from typing import Any
 
 
 def get_user_config_dir() -> Path:
@@ -18,25 +16,6 @@ def get_user_config_dir() -> Path:
 def get_prompts_dir() -> Path:
     """Get the prompts directory (~/.zotero-mcp/prompts/)."""
     return get_user_config_dir() / "prompts"
-
-
-def load_config() -> dict[str, Any]:
-    """
-    Load user configuration from config.json.
-    
-    Returns:
-        Configuration dictionary, or empty dict if no config file exists.
-    """
-    config_path = get_user_config_dir() / "config.json"
-    
-    if config_path.exists():
-        try:
-            with open(config_path, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except (json.JSONDecodeError, IOError):
-            pass
-    
-    return {}
 
 
 def load_prompt(name: str) -> str | None:

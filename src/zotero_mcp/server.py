@@ -2,18 +2,18 @@
 Zotero MCP Lite server implementation.
 
 A lightweight Model Context Protocol (MCP) server for Zotero reference management.
-Provides 12 atomic tools and 4 research prompts for academic literature workflows.
+Provides 11 atomic tools and 4 research prompts for academic literature workflows.
 
 Architecture:
     - Read Operations: Via Zotero Local HTTP API (/api/)
     - Write Operations: Via Zotero Connector API (/connector/)
     - Annotation Queries: Direct SQLite access for performance
 
-Tools (12):
+Tools (11):
     Search & Navigation: search_items, get_recent, get_collections, 
                         get_collection_items, get_tags, search_annotations
     Content Reading: get_item_metadata, get_item_children, get_item_fulltext
-    Writing: create_note, create_item, create_review
+    Writing: create_note, create_review
 
 Prompts (4):
     - knowledge_discovery: Cross-library topic exploration
@@ -671,50 +671,6 @@ def create_note(
     except Exception as e:
         ctx.error(f"Error creating note: {e}")
         return f"Error creating note: {e}"
-
-
-@mcp.tool(
-    name="zotero_create_item",
-    description=(
-        "Add a new reference to your library: article, book, webpage, thesis, etc. "
-        "Manually create bibliographic entries with title, authors, and metadata. "
-        "For notes about existing papers, use create_note instead."
-    )
-)
-def create_item(
-    item_type: str,
-    title: str,
-    creators: Optional[list[dict]] = None,
-    tags: Optional[list[str]] = None,
-    extra_fields: Optional[dict] = None,
-    *,
-    ctx: Context
-) -> str:
-    """Create a new item via local Connector API."""
-    try:
-        ctx.info(f"Creating {item_type}: {title}")
-        
-        item_data: dict[str, Any] = {
-            "itemType": item_type,
-            "title": title,
-            "tags": [{"tag": t} for t in (tags or [])],
-        }
-        
-        if creators:
-            item_data["creators"] = creators
-        
-        if extra_fields:
-            item_data.update(extra_fields)
-        
-        create_item_local([item_data])
-        return f"Item created: {title}"
-    
-    except ConnectionError as e:
-        ctx.error(f"Connection error: {e}")
-        return str(e)
-    except Exception as e:
-        ctx.error(f"Error creating item: {e}")
-        return f"Error creating item: {e}"
 
 
 # -----------------------------------------------------------------------------
