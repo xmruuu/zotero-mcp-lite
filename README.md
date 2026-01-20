@@ -5,7 +5,7 @@ A high-performance Model Context Protocol (MCP) server for Zotero with customiza
 - **Full Local** - No cloud, no API key; runs entirely via Zotero Desktop
 - **Atomic Tools** - 10 composable tools; LLM orchestrates as needed
 - **MCP-Native** - Works with Claude, Cursor, Gemini CLI, and any MCP client
-- **Extensible** - User-editable prompts and HTML templates
+- **Extensible** - User-editable prompts for customized workflows
 - **Easy Deploy** - Single command install, auto-detects Zotero
 - **Parameterized** - Customize analysis sections to match your research style
 
@@ -136,8 +136,7 @@ That's it! You're ready to use Zotero with AI assistants.
 
 **Writing** (via local Connector API)
 
-- `zotero_create_note` - Create new note (standalone or attached)
-- `zotero_create_review` - Create formatted review note with auto-filled metadata
+- `zotero_create_note` - Create note with full formatting support (tables, lists, line breaks)
 
 ### 4 Research Prompts
 
@@ -165,8 +164,8 @@ flowchart LR
 **Key Features:**
 
 - **Dual-mode analysis**: Works with or without user annotations
-- **Template-based output**: LLM outputs JSON, system handles HTML formatting
-- **Fully customizable**: Edit prompt and template files to match your workflow
+- **Full formatting preserved**: Tables, line breaks, and lists write correctly to Zotero
+- **Fully customizable**: Edit prompt files to match your workflow
 - See [Customizing Prompts](#customizing-prompts) for details
 
 ## Advanced
@@ -223,106 +222,51 @@ Automatically detects Zotero data directory on Windows, macOS, and Linux.
 
 ## Customizing Prompts
 
-The prompts and HTML templates are fully customizable. Copy from the package defaults and edit:
+Prompts are fully customizable. Copy from the package defaults and edit:
 
 ```
 ~/.zotero-mcp/prompts/
-├── literature_review.md           # Single paper analysis prompt
-├── literature_review_template.html # HTML note template
-├── comparative_review.md          # Multi-paper comparison prompt
-├── comparative_review_template.html
-├── knowledge_discovery.md         # Topic exploration prompt
-└── bibliography_export.md         # Citation export prompt
+├── literature_review.md      # Single paper analysis prompt
+├── comparative_review.md     # Multi-paper comparison prompt
+├── knowledge_discovery.md    # Topic exploration prompt
+└── bibliography_export.md    # Citation export prompt
 ```
 
 **Loading order:** User files (`~/.zotero-mcp/prompts/`) take priority over package defaults.
 
-#### How Template Engine Works
+#### How It Works
 
 ```mermaid
 flowchart LR
-    subgraph UserFiles [User Config Files]
-        Prompt[prompt.md]
-        Template[template.html]
-    end
-    
-    subgraph System [System]
-        ReadPrompt[Read Prompt]
-        GetMeta[Get Zotero Metadata]
-        FillTemplate[Fill Template]
-    end
-    
-    subgraph LLM [LLM]
-        JSON[Output JSON]
-    end
-    
-    Prompt --> ReadPrompt
-    ReadPrompt --> JSON
-    JSON --> FillTemplate
-    GetMeta --> FillTemplate
-    Template --> FillTemplate
-    FillTemplate --> Note[Zotero Note]
+    Prompt[prompt.md] --> LLM[LLM Analysis]
+    LLM --> Review[Formatted Review]
+    Review --> Note["zotero_create_note()"]
+    Note --> Zotero[Zotero Note]
 ```
 
-**Benefits:**
-- LLM only outputs analysis content as JSON (saves tokens, faster response)
-- System handles all HTML formatting (consistent, error-free output)
-- Metadata auto-filled from Zotero (title, authors, year, etc.)
+The LLM generates the complete review text with your desired formatting (tables, lists, etc.), then saves it directly via `zotero_create_note`. All formatting is preserved.
 
 #### Prompt Files (`.md`)
 
-Define how the AI should analyze papers and what JSON fields to output:
+Define how the AI should analyze papers:
 
 ```markdown
 ## Analysis Instructions
 
-Analyze the paper and output JSON with these fields:
-- objective: Main research question
-- methods: Methodology used
-- contribution: Key contributions
-- gaps: Limitations identified
+Analyze the paper covering:
+- Research Objective
+- Methods
+- Contribution
+- Research Gaps
 
-## Example Output
+Use tables and bullet points as appropriate.
 
-zotero_create_review(
-    item_key="ABC123",
-    analysis={
-        "objective": "This paper investigates...",
-        "methods": "Using a survey of 500 participants...",
-        "contribution": "The key finding is...",
-        "gaps": "Limitations include..."
-    }
-)
+## Save to Zotero
+
+Use `zotero_create_note(content=<your review>, parent_key=<item_key>)`
 ```
 
-#### Template Files (`.html`)
-
-Define how notes appear in Zotero. Use `${variable}` placeholders:
-
-**Metadata (auto-filled from Zotero):**
-
-| Variable | Description |
-|----------|-------------|
-| `${title}` | Paper title |
-| `${authors}` | Formatted author names |
-| `${year}` | Publication year |
-| `${publicationTitle}` | Journal/venue name |
-| `${DOI}` | Digital Object Identifier |
-| `${abstractNote}` | Paper abstract |
-| `${tags}` | Comma-separated tags |
-| `${itemLink}` | Zotero item link |
-
-**Analysis (from LLM JSON output):**
-
-| Variable | Description |
-|----------|-------------|
-| `${objective}` | Research objective analysis |
-| `${methods}` | Methods analysis |
-| `${contribution}` | Contribution analysis |
-| `${gaps}` | Gaps analysis |
-| ... | Any custom field you define |
-
-Simply add `${your_field}` in the template and include `"your_field": "..."` in the JSON output
+You can customize the analysis sections, add new ones, or change the output format entirely
 
 ## Credits
 
