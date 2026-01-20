@@ -638,10 +638,10 @@ def create_note(
 @mcp.tool(
     name="zotero_create_review",
     description=(
-        "Create a formatted literature review note with auto-filled metadata. "
-        "Accepts analysis dict with fields as specified in the prompt instructions. "
-        "Automatically retrieves paper metadata (title, authors, year, DOI, abstract) from Zotero. "
-        "Uses HTML template matching template_name from ~/.zotero-mcp/prompts/."
+        "Create a templated review note - USE ONLY with /literature_review or /comparative_review prompts. "
+        "The prompt defines exact field names (e.g., objective, methods, contribution, gaps). "
+        "If user didn't invoke a prompt, use zotero_create_note instead for free-form notes. "
+        "Auto-fills metadata (title, authors, year, DOI, abstract) from Zotero."
     )
 )
 def create_review(
