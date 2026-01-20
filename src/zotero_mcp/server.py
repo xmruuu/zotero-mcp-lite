@@ -798,7 +798,7 @@ def knowledge_discovery(query: str) -> str:
 
 
 @mcp.prompt()
-def literature_review(item_key: str) -> str:
+def literature_review(paper: str = "") -> str:
     """
     Deep academic analysis of a single paper.
     
@@ -806,39 +806,31 @@ def literature_review(item_key: str) -> str:
     """
     prompt = load_prompt("literature_review")
     if prompt:
-        return prompt.replace("{item_key}", item_key)
-    return f"Error: literature_review prompt not found for item {item_key}"
+        return prompt.replace("{paper}", paper)
+    return "Error: literature_review prompt not found"
 
 
 @mcp.prompt()
-def comparative_review(item_keys: list[str]) -> str:
+def comparative_review(papers: str = "") -> str:
     """
     Synthesize multiple papers into a comparative review.
     
     Prompt loaded from ~/.zotero-mcp/prompts/comparative_review.md or package defaults.
     """
-    if not item_keys:
-        return "Error: Please provide item_keys. Usage: /comparative_review KEY1 KEY2 KEY3"
-    
-    keys_list = ", ".join([f'`{k}`' for k in item_keys])
-    first_key = item_keys[0]
-    
     prompt = load_prompt("comparative_review")
     if prompt:
-        return prompt.replace("{keys_list}", keys_list).replace("{first_key}", first_key)
-    return f"Error: comparative_review prompt not found for papers {keys_list}"
+        return prompt.replace("{papers}", papers)
+    return "Error: comparative_review prompt not found"
 
 
 @mcp.prompt()
-def bibliography_export(item_keys: list[str]) -> str:
+def bibliography_export(papers: str = "") -> str:
     """
     Export formatted citations and BibTeX for selected papers.
     
     Prompt loaded from ~/.zotero-mcp/prompts/bibliography_export.md or package defaults.
     """
-    keys_list = ", ".join([f'`{k}`' for k in item_keys])
-    
     prompt = load_prompt("bibliography_export")
     if prompt:
-        return prompt.replace("{keys_list}", keys_list)
-    return f"Error: bibliography_export prompt not found for papers {keys_list}"
+        return prompt.replace("{papers}", papers)
+    return "Error: bibliography_export prompt not found"

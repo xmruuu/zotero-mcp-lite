@@ -1,16 +1,25 @@
 # Literature Review Prompt
 
-Perform comprehensive academic analysis of paper {item_key}.
+User request: {paper}
 
-## Phase 1: Information Gathering
+## Step 1: Find the Paper
 
-1. Call `zotero_get_item_metadata("{item_key}")`
-2. Call `zotero_get_item_children("{item_key}")` for annotations
-3. If annotations are sparse, call `zotero_get_item_fulltext("{item_key}")`
+First, identify which paper to review:
 
-## Phase 2: Analysis
+- If user mentions a title/topic → Use `zotero_search_items(query)` to find it
+- If user says "recent paper" or "paper I just added" → Use `zotero_get_recent(limit=1)`
+- If user provides an item key directly → Use that key
+- If unclear → Ask the user which paper to review
 
-Analyze the paper under these sections. Use tables, bullet points, or prose as appropriate for each section:
+## Step 2: Gather Information
+
+1. Call `zotero_get_item_metadata(item_key)`
+2. Call `zotero_get_item_children(item_key)` for annotations
+3. If annotations are sparse, call `zotero_get_item_fulltext(item_key)`
+
+## Step 3: Analysis
+
+Analyze the paper under these sections. Use tables, bullet points, or prose as appropriate:
 
 - **Research Objective** - What problem does this paper solve?
 - **Research Background** - Key prior work and research gap
@@ -27,24 +36,8 @@ Analyze the paper under these sections. Use tables, bullet points, or prose as a
 - If information not found, write "Not discussed"
 - Never fabricate data or citations
 
-## Phase 3: Save to Zotero
+## Step 4: Save to Zotero
 
 Ask: "Save this review to Zotero?"
 
-If yes, call `zotero_create_review` with the analysis content:
-
-```
-zotero_create_review(
-    item_key="{item_key}",
-    analysis={
-        "objective": "Your Research Objective content",
-        "background": "Your Research Background content",
-        "methods": "Your Research Methods content",
-        "contribution": "Your Contribution content",
-        "gaps": "Your Research Gaps content",
-        "discussion": "Your Discussion content",
-        "quotes": "Your Key Quotes content",
-        "to_read": "Your To-Read content"
-    }
-)
-```
+If yes, call `zotero_create_review` with the analysis content.
