@@ -48,9 +48,9 @@ mcp = FastMCP("Zotero")
 @mcp.tool(
     name="zotero_suggest_workflow",
     description=(
-        "Get recommended workflow for a research task. "
+        "Get workflow instructions for a research task. "
         "Call this FIRST when user requests literature review, comparative analysis, or bibliography export. "
-        "Returns the prompt name to invoke and step-by-step instructions."
+        "Returns complete instructions that you MUST follow step by step."
     )
 )
 def suggest_workflow(
@@ -58,78 +58,44 @@ def suggest_workflow(
     *,
     ctx: Context
 ) -> str:
-    """Suggest the best workflow/prompt for a research task."""
+    """Get workflow instructions for a research task. Returns the full prompt content."""
     task_lower = task.lower()
     
     workflows = {
         "literature_review": {
-            "triggers": ["literature review", "review paper", "analyze paper", "paper analysis", "single paper"],
-            "prompt": "/literature_review",
-            "description": "Deep academic analysis of a single paper",
-            "steps": [
-                "1. Invoke /literature_review prompt with the item_key",
-                "2. The prompt will guide you through metadata retrieval, annotation check, and structured analysis",
-                "3. Analysis fields: objective, background, methods, contribution, gaps, discussion, quotes, to_read",
-                "4. Use zotero_create_review to save the formatted note"
-            ]
+            "triggers": ["literature review", "review paper", "analyze paper", "paper analysis", "single paper", "review"],
+            "prompt_name": "literature_review",
         },
         "comparative_review": {
             "triggers": ["comparative", "compare papers", "multiple papers", "synthesis", "comparison"],
-            "prompt": "/comparative_review",
-            "description": "Synthesize and compare multiple papers",
-            "steps": [
-                "1. Invoke /comparative_review prompt with list of item_keys",
-                "2. The prompt guides multi-paper analysis with tables and debate model",
-                "3. Creates comprehensive synthesis covering consensus, conflicts, and insights",
-                "4. Use zotero_create_review with template_name='comparative_review'"
-            ]
+            "prompt_name": "comparative_review",
         },
         "bibliography": {
             "triggers": ["bibliography", "citation", "bibtex", "reference list", "cite"],
-            "prompt": "/bibliography_export",
-            "description": "Export formatted citations and BibTeX",
-            "steps": [
-                "1. Invoke /bibliography_export prompt with item_keys",
-                "2. Generates formatted citations in multiple styles",
-                "3. Provides BibTeX entries for LaTeX users"
-            ]
+            "prompt_name": "bibliography_export",
         },
         "discovery": {
             "triggers": ["explore", "discover", "find related", "knowledge", "topic"],
-            "prompt": "/knowledge_discovery",
-            "description": "Explore your knowledge base on a topic",
-            "steps": [
-                "1. Invoke /knowledge_discovery prompt with your query",
-                "2. Searches across papers, annotations, and notes",
-                "3. Synthesizes what you've learned about the topic"
-            ]
+            "prompt_name": "knowledge_discovery",
         }
     }
     
-    # Find matching workflow
+    # Find matching workflow and return its prompt content
     for name, workflow in workflows.items():
         if any(trigger in task_lower for trigger in workflow["triggers"]):
-            result = [
-                f"# Recommended Workflow: {workflow['description']}",
-                "",
-                f"**Invoke prompt:** `{workflow['prompt']}`",
-                "",
-                "## Steps:",
-            ]
-            result.extend(workflow["steps"])
-            return "\n".join(result)
+            prompt_content = load_prompt(workflow["prompt_name"])
+            if prompt_content:
+                return f"# Follow these instructions:\n\n{prompt_content}"
+            return f"Error: Could not load {workflow['prompt_name']} prompt"
     
     # No specific match - list all available
-    result = [
-        "# Available Research Workflows",
-        "",
-        "Invoke the appropriate prompt for your task:",
-        "",
-    ]
-    for name, workflow in workflows.items():
-        result.append(f"- **{workflow['prompt']}**: {workflow['description']}")
-    
-    return "\n".join(result)
+    return """# Available Research Workflows
+
+Call this tool again with one of these task types:
+- "literature review" - Deep analysis of a single paper
+- "comparative review" - Compare and synthesize multiple papers  
+- "bibliography" - Export citations and BibTeX
+- "knowledge discovery" - Explore your knowledge base on a topic"""
 
 
 # -----------------------------------------------------------------------------
