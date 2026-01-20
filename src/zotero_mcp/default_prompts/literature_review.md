@@ -34,4 +34,6 @@ Don't fabricate data or citations.
 
 ## Step 4: Save
 
-Ask: "Save to Zotero?" → Use `zotero_create_review`
+Ask: "Save to Zotero?" → Use `zotero_create_note(content=<your full review>, parent_key=<item_key>)`
+
+The note will preserve all formatting including tables and line breaks.

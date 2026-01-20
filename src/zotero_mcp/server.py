@@ -9,12 +9,12 @@ Architecture:
     - Write Operations: Via Zotero Connector API (/connector/)
     - Annotation Queries: Direct SQLite access for performance
 
-Tools (11):
+Tools (10):
     Workflow: suggest_workflow
     Search & Navigation: search_items, get_recent, get_collections, 
                         get_collection_items, search_annotations
     Content Reading: get_item_metadata, get_item_children, get_item_fulltext
-    Writing: create_note, create_review
+    Writing: create_note
 
 Prompts (4):
     - knowledge_discovery: Cross-library topic exploration
@@ -34,8 +34,7 @@ from zotero_mcp.client import (
     get_attachment_details,
     create_item_local,
 )
-from zotero_mcp.config import load_prompt, load_template
-from zotero_mcp.template_engine import render_review, build_metadata_dict
+from zotero_mcp.config import load_prompt
 from zotero_mcp.utils import format_creators, clean_html, text_to_html
 
 
@@ -653,10 +652,10 @@ def get_item_fulltext(
 @mcp.tool(
     name="zotero_create_note",
     description=(
-        "Create a free-form note in Zotero. "
-        "Use for: saving summaries, research memos, or any unstructured content. "
+        "Create a note in Zotero with full formatting support (tables, lists, line breaks). "
+        "Use for: saving literature reviews, summaries, research memos, or any content. "
         "Attach to a paper with parent_key for organized reference management. "
-        "For structured literature reviews, use zotero_create_review with /literature_review prompt instead."
+        "Content is auto-converted to HTML; line breaks and spacing are preserved."
     )
 )
 def create_note(
@@ -698,81 +697,6 @@ def create_note(
     except Exception as e:
         ctx.error(f"Error creating note: {e}")
         return f"Error creating note: {e}"
-
-
-# -----------------------------------------------------------------------------
-# Review Note Tool - Template-based note generation
-# -----------------------------------------------------------------------------
-
-@mcp.tool(
-    name="zotero_create_review",
-    description=(
-        "Create a templated review note - USE ONLY with /literature_review or /comparative_review prompts. "
-        "The prompt defines exact field names (e.g., objective, methods, contribution, gaps). "
-        "If user didn't invoke a prompt, use zotero_create_note instead for free-form notes. "
-        "Auto-fills metadata (title, authors, year, DOI, abstract) from Zotero."
-    )
-)
-def create_review(
-    item_key: str,
-    analysis: dict[str, str],
-    template_name: str = "literature_review",
-    tags: Optional[list[str]] = None,
-    *,
-    ctx: Context
-) -> str:
-    """
-    Create a literature review note with templated formatting.
-    
-    Args:
-        item_key: Zotero item key for the paper being reviewed
-        analysis: Dict with analysis content (e.g., {"contribution": "...", "gaps": "..."})
-        template_name: Template to use (default: "literature_review")
-        tags: Optional tags to add to the note
-    """
-    try:
-        ctx.info(f"Creating review note for item {item_key}")
-        zot = get_zotero_client()
-        
-        # 1. Get paper metadata from Zotero
-        item = zot.item(item_key)
-        if not item:
-            return f"Error: No item found with key: {item_key}"
-        
-        metadata = build_metadata_dict(item)
-        
-        # 2. Load HTML template
-        template = load_template(template_name)
-        if not template:
-            return (
-                f"Error: Template '{template_name}_template.html' not found.\n"
-                f"Please ensure the template exists in:\n"
-                f"  - ~/.zotero-mcp/prompts/{template_name}_template.html (user config)\n"
-                f"  - or package default_prompts/ directory"
-            )
-        
-        # 3. Render the review
-        html_content = render_review(template, metadata, analysis)
-        
-        # 4. Create the note in Zotero
-        note_data: dict[str, Any] = {
-            "itemType": "note",
-            "note": html_content,
-            "tags": [{"tag": t} for t in (tags or [])],
-            "parentItem": item_key,
-        }
-        
-        create_item_local([note_data])
-        
-        title = metadata.get("title", "Untitled")
-        return f"Review note created for \"{title}\""
-    
-    except ConnectionError as e:
-        ctx.error(f"Connection error: {e}")
-        return str(e)
-    except Exception as e:
-        ctx.error(f"Error creating review: {e}")
-        return f"Error creating review: {e}"
 
 
 # -----------------------------------------------------------------------------
