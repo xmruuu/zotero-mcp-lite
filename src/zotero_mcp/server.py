@@ -48,9 +48,8 @@ mcp = FastMCP("Zotero")
 @mcp.tool(
     name="zotero_suggest_workflow",
     description=(
-        "Get workflow instructions for a research task. "
-        "Call this FIRST when user requests literature review, comparative analysis, or bibliography export. "
-        "Returns complete instructions that you MUST follow step by step."
+        "Get the recommended prompt for a research task. "
+        "Returns which slash command the user should invoke."
     )
 )
 def suggest_workflow(
@@ -58,44 +57,56 @@ def suggest_workflow(
     *,
     ctx: Context
 ) -> str:
-    """Get workflow instructions for a research task. Returns the full prompt content."""
+    """Suggest which prompt to use for a research task."""
     task_lower = task.lower()
     
     workflows = {
         "literature_review": {
             "triggers": ["literature review", "review paper", "analyze paper", "paper analysis", "single paper", "review"],
-            "prompt_name": "literature_review",
+            "command": "/literature_review",
+            "description": "Deep academic analysis of a single paper",
+            "usage": "/literature_review <item_key>",
         },
         "comparative_review": {
             "triggers": ["comparative", "compare papers", "multiple papers", "synthesis", "comparison"],
-            "prompt_name": "comparative_review",
+            "command": "/comparative_review",
+            "description": "Synthesize and compare multiple papers",
+            "usage": "/comparative_review <item_key1> <item_key2> ...",
         },
         "bibliography": {
             "triggers": ["bibliography", "citation", "bibtex", "reference list", "cite"],
-            "prompt_name": "bibliography_export",
+            "command": "/bibliography_export",
+            "description": "Export formatted citations and BibTeX",
+            "usage": "/bibliography_export <item_key1> <item_key2> ...",
         },
         "discovery": {
             "triggers": ["explore", "discover", "find related", "knowledge", "topic"],
-            "prompt_name": "knowledge_discovery",
+            "command": "/knowledge_discovery",
+            "description": "Explore your knowledge base on a topic",
+            "usage": "/knowledge_discovery <query>",
         }
     }
     
-    # Find matching workflow and return its prompt content
+    # Find matching workflow
     for name, workflow in workflows.items():
         if any(trigger in task_lower for trigger in workflow["triggers"]):
-            prompt_content = load_prompt(workflow["prompt_name"])
-            if prompt_content:
-                return f"# Follow these instructions:\n\n{prompt_content}"
-            return f"Error: Could not load {workflow['prompt_name']} prompt"
+            return f"""# Recommended: {workflow['description']}
+
+Please ask the user to invoke:
+
+**{workflow['usage']}**
+
+This prompt provides structured guidance for the task."""
     
     # No specific match - list all available
-    return """# Available Research Workflows
+    return """# Available Research Prompts
 
-Call this tool again with one of these task types:
-- "literature review" - Deep analysis of a single paper
-- "comparative review" - Compare and synthesize multiple papers  
-- "bibliography" - Export citations and BibTeX
-- "knowledge discovery" - Explore your knowledge base on a topic"""
+Ask the user to invoke one of these:
+
+- `/literature_review <item_key>` - Deep analysis of a single paper
+- `/comparative_review <item_keys>` - Compare multiple papers
+- `/bibliography_export <item_keys>` - Export citations and BibTeX
+- `/knowledge_discovery <query>` - Explore knowledge base"""
 
 
 # -----------------------------------------------------------------------------
