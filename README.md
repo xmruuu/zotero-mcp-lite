@@ -10,7 +10,7 @@
 A high-performance Model Context Protocol (MCP) server for Zotero with customizable research workflows.
 
 - **Full Local** - No cloud, no API key; runs entirely via Zotero Desktop
-- **Atomic Tools** - 10 composable tools; LLM orchestrates as needed
+- **Atomic Tools** - 9 composable tools; LLM orchestrates as needed
 - **MCP-Native** - Works with Claude, Cursor, Gemini CLI, and any MCP client
 - **Extensible** - User-editable prompts for customized workflows
 - **Easy Deploy** - Single command install, auto-detects Zotero
@@ -134,11 +134,7 @@ That's it! You're ready to use Zotero with AI assistants.
 
 ## Features
 
-### 10 Atomic MCP Tools
-
-**Workflow Discovery**
-
-- `zotero_suggest_workflow` - Get recommended prompt for a research task
+### 9 Atomic MCP Tools
 
 **Search and Navigation**
 
