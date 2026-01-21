@@ -2,15 +2,14 @@
 Zotero MCP Lite server implementation.
 
 A lightweight Model Context Protocol (MCP) server for Zotero reference management.
-Provides 10 atomic tools and 4 research prompts for academic literature workflows.
+Provides 9 atomic tools and 4 research prompts for academic literature workflows.
 
 Architecture:
     - Read Operations: Via Zotero Local HTTP API (/api/)
     - Write Operations: Via Zotero Connector API (/connector/)
     - Annotation Queries: Direct SQLite access for performance
 
-Tools (10):
-    Workflow: suggest_workflow
+Tools (9):
     Search & Navigation: search_items, get_recent, get_collections, 
                         get_collection_items, search_annotations
     Content Reading: get_item_metadata, get_item_children, get_item_fulltext
@@ -42,75 +41,7 @@ mcp = FastMCP("Zotero")
 
 
 # -----------------------------------------------------------------------------
-# Workflow Discovery Tool
-# -----------------------------------------------------------------------------
-
-@mcp.tool(
-    name="zotero_suggest_workflow",
-    description=(
-        "Get the recommended prompt for a research task. "
-        "Returns which slash command the user should invoke."
-    )
-)
-def suggest_workflow(
-    task: str,
-    *,
-    ctx: Context
-) -> str:
-    """Suggest which prompt to use for a research task."""
-    task_lower = task.lower()
-    
-    workflows = {
-        "literature_review": {
-            "triggers": ["literature review", "review paper", "analyze paper", "paper analysis", "single paper", "review"],
-            "command": "/literature_review",
-            "description": "Deep academic analysis of a single paper",
-            "usage": "/literature_review <item_key>",
-        },
-        "comparative_review": {
-            "triggers": ["comparative", "compare papers", "multiple papers", "synthesis", "comparison"],
-            "command": "/comparative_review",
-            "description": "Synthesize and compare multiple papers",
-            "usage": "/comparative_review <item_key1> <item_key2> ...",
-        },
-        "bibliography": {
-            "triggers": ["bibliography", "citation", "bibtex", "reference list", "cite"],
-            "command": "/bibliography_export",
-            "description": "Export formatted citations and BibTeX",
-            "usage": "/bibliography_export <item_key1> <item_key2> ...",
-        },
-        "discovery": {
-            "triggers": ["explore", "discover", "find related", "knowledge", "topic"],
-            "command": "/knowledge_discovery",
-            "description": "Explore your knowledge base on a topic",
-            "usage": "/knowledge_discovery <query>",
-        }
-    }
-    
-    # Find matching workflow
-    for name, workflow in workflows.items():
-        if any(trigger in task_lower for trigger in workflow["triggers"]):
-            return f"""# Recommended: {workflow['description']}
-
-Please ask the user to invoke:
-
-**{workflow['usage']}**
-
-This prompt provides structured guidance for the task."""
-    
-    # No specific match - list all available
-    return """# Available Research Prompts
-
-Ask the user to invoke one of these:
-
-- `/literature_review <item_key>` - Deep analysis of a single paper
-- `/comparative_review <item_keys>` - Compare multiple papers
-- `/bibliography_export <item_keys>` - Export citations and BibTeX
-- `/knowledge_discovery <query>` - Explore knowledge base"""
-
-
-# -----------------------------------------------------------------------------
-# Search & Navigation Tools (6)
+# Search & Navigation Tools (5)
 # -----------------------------------------------------------------------------
 
 @mcp.tool(
@@ -118,8 +49,7 @@ Ask the user to invoke one of these:
     description=(
         "Search your reference library for papers, articles, books, or notes by keyword. "
         "Default searches title/author/year; use qmode='everything' to search full text and note contents. "
-        "Returns item keys for get_item_metadata (details) or get_item_children (highlights/notes). "
-        "TIP: For literature review or comparative analysis, call zotero_suggest_workflow first."
+        "Returns item keys for get_item_metadata (details) or get_item_children (highlights/notes)."
     )
 )
 def search_items(
@@ -276,7 +206,7 @@ def get_collections(
 )
 def get_collection_items(
     collection_key: str,
-    limit: int = 50,
+    limit: int = 25,
     item_type: str = "-attachment -note",
     *,
     ctx: Context
@@ -566,7 +496,7 @@ def get_item_children(
 )
 def get_item_fulltext(
     item_key: str,
-    max_chars: int = 10000,
+    max_chars: int = 50000,
     *,
     ctx: Context
 ) -> str:

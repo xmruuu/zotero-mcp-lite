@@ -293,7 +293,7 @@ class TestGetCollectionItems(unittest.TestCase):
         _get_collection_items("COL1", ctx=ctx)
 
         mock_zot.collection_items.assert_called_once_with(
-            "COL1", limit=50, itemType="-attachment -note"
+            "COL1", limit=25, itemType="-attachment -note"
         )
 
     @patch("zotero_mcp.server.get_zotero_client")
@@ -308,7 +308,7 @@ class TestGetCollectionItems(unittest.TestCase):
         _get_collection_items("COL1", item_type="", ctx=ctx)
 
         mock_zot.collection_items.assert_called_once_with(
-            "COL1", limit=50, itemType=None
+            "COL1", limit=25, itemType=None
         )
 
 
