@@ -261,8 +261,8 @@ def generate_bibtex(item: dict[str, Any], slim: bool = True) -> str:
                 elif "name" in creator:
                     authors.append(creator["name"])
         if authors:
-            lines.append(f"  author = {{{" and ".join(authors)}}},")
-    
+            lines.append(f"  author = {{{' and '.join(authors)}}},")
+
     if year != "nodate":
         lines.append(f"  year = {{{year}}},")
     
