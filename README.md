@@ -59,11 +59,13 @@ The Local API allows third-party applications to communicate with Zotero. **This
 
 ### Step 1: Install
 
+**Recommended:**
+
 ```bash
 uv tool install zotero-mcp-lite
 ```
 
-Or with pip:
+**Alternative (requires Python 3.10+):**
 
 ```bash
 pip install zotero-mcp-lite
@@ -103,7 +105,7 @@ This detects your Zotero installation and configures MCP clients automatically.
 claude mcp add zotero -- zotero-mcp serve
 ```
 
-**Other MCP clients** — add to your MCP config JSON:
+**Other MCP clients** — add to your MCP config file:
 
 ```json
 {
@@ -115,6 +117,8 @@ claude mcp add zotero -- zotero-mcp serve
   }
 }
 ```
+
+> Config file locations: `claude_desktop_config.json` (Claude Desktop), Settings → MCP (Cursor), `~/.gemini/settings.json` (Gemini CLI)
 
 That's it! You're ready to use Zotero with AI assistants.
 
